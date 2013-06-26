@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{C14593C6-706B-8DE0-59CE-A2452630BD39}</ProjectGuid>
+	<ProjectGuid>{07DD5D3C-354D-51DD-287B-88115D87ECB4}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -37,10 +37,10 @@
     <Reference Include="System.XML" />
 	<Reference Include="System.Core" />
 	<Reference Include="UnityEngine">
-	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
+	  <HintPath>/Applications/Unity/Unity.app/Contents/Frameworks/Managed/UnityEngine.dll</HintPath>
 	</Reference>
 	<Reference Include="UnityEditor">
-	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
+	  <HintPath>/Applications/Unity/Unity.app/Contents/Frameworks/Managed/UnityEditor.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -77,7 +77,6 @@
      <Compile Include="Assets\NGUI\Examples\Scripts\Other\WindowAutoYaw.cs" />
      <Compile Include="Assets\NGUI\Examples\Scripts\Other\WindowDragTilt.cs" />
      <Compile Include="Assets\Scripts\ClickEventBack.cs" />
-     <Compile Include="Assets\Scripts\ClickEventCB.cs" />
      <Compile Include="Assets\Scripts\ClickEventCredits.cs" />
      <Compile Include="Assets\Scripts\ClickEventExit.cs" />
      <Compile Include="Assets\Scripts\ClickEventNew.cs" />
@@ -120,7 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{FF25F30D-E08B-00B3-AEF5-D7C67CCF2DBD}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{2605C6BE-837D-2D15-C153-529F8A366858}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

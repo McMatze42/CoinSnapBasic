@@ -6,6 +6,7 @@ var Coin:GameObject; // coin prefab to instantiate
 var SnapCoin:GameObject; // the active coin
 var UICoinName:GameObject; // the prefab of the coin label
 var CoinLoca:GameObject; // the prefab of the coin label
+private var isFree: boolean = false;
 private var arCoinLabels = new Array();
 private var arCoins = new Array();
 private var coinPos:Vector3 = Vector3(0, 1.2, -2.9);
@@ -14,6 +15,8 @@ private var oldCoinPos:Vector3 = coinPos;
 private var coinActive:boolean = false;
 private var camPos: Vector3 = Vector3(0, 1.5, -3.5); 
 private var startEuros: int = 10;
+private var countHumanPlayer: int = 0;
+private var countCompPlayer: int = 0;
 private var countPlayer: int;
 private var actualPlayer: int = -1;
 private var actualRound: int = 0;
@@ -33,10 +36,6 @@ private var lang: int = 1; // 1 = en-us, 2 = de-de
 var mainMenu:GameObject; //mainHUD prefeb to instantiate
 private var mainMenuClone:GameObject;
 private var mainPos:Vector3 = Vector3(0, 1, 9);
-private var inputName1: UIInput;
-private var inputName2: UIInput;
-private var inputName3: UIInput;
-private var inputName4: UIInput;
 private var buttonPlay: UIButton;
 var coinHUD:GameObject; //coinHUD prefeb to instantiate
 private var coinHudClone:GameObject;
@@ -176,86 +175,110 @@ function setNewLocalizationGer(setIt: boolean)
 	}
 }
 
-function setPlayerH1(setIt: boolean)
+function human2checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 1;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+		ib.enabled = true;
+	}
 }
 
-function setPlayerC1(setIt: boolean)
+function comp2checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 2;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+		ib.enabled = false;
+	}
 }
 
-function setPlayerH2(setIt: boolean)
+function human3checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 1;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+		ib.enabled = true;
+	}
 }
 
-function setPlayerC2(setIt: boolean)
+function comp3checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 2;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+		ib.enabled = false;
+	}
 }
 
-function setPlayerH3(setIt: boolean)
+function human4checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 1;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+		ib.enabled = true;
+	}
 }
 
-function setPlayerC3(setIt: boolean)
+function comp4checked(setIt:boolean)
 {
-	if (setIt) countPlayer = 2;
-}
-
-function setPlayerH4(setIt: boolean)
-{
-	if (setIt) countPlayer = 1;
-}
-
-function setPlayerC4(setIt: boolean)
-{
-	if (setIt) countPlayer = 2;
+	if (setIt) 
+	{
+		var ib:UIInput = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+		ib.enabled = false;
+	}
 }
 
 function OnSubmit ()
 {
-	var text: String = inputName1.text;
+	var tempLabel:UILabel = GameObject.Find("Input_Name_1").GetComponentInChildren(UILabel);
+	var text: String = tempLabel.text;
 	if (!String.IsNullOrEmpty(text))
 	{
 		if (text != "Type here")
 		{	
 			namePlayer1 = text;
-			//buttonPlay.isEnabled(true);
+			buttonPlay.isEnabled = true;
 		}	
 	}
 	
-	text = inputName2.text;
-	if (!String.IsNullOrEmpty(text))
+	var ib:UIInput = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+	if ((ib != null) && (ib.enabled == true))
 	{
-		if (text != "Type here")
-		{	
-			namePlayer2 = text;
-			//buttonPlay.SetActive(true);
-		}	
+		text = ib.text;
+		if (!String.IsNullOrEmpty(text))
+		{
+			if (text != "Type here")
+			{	
+				namePlayer2 = text;
+			}	
+		}
 	}
 	
-	text = inputName3.text;
-	if (!String.IsNullOrEmpty(text))
+	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+	if ((ib != null) && (ib.enabled == true))
 	{
-		if (text != "Type here")
-		{	
-			namePlayer3 = text;
-			//buttonPlay.SetActive(true);
-		}	
+		text = ib.text;
+		if (!String.IsNullOrEmpty(text))
+		{
+			if (text != "Type here")
+			{	
+				namePlayer3 = text;
+			}	
+		}
 	}
 	
-	text = inputName4.text;
-	if (!String.IsNullOrEmpty(text))
+	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+	if ((ib != null) && (ib.enabled == true))
 	{
-		if (text != "Type here")
-		{	
-			namePlayer4 = text;
-			//buttonPlay.SetActive(true);
-		}	
+		text = ib.text;
+		if (!String.IsNullOrEmpty(text))
+		{
+			if (text != "Type here")
+			{	
+				namePlayer4 = text;
+			}	
+		}
 	}
 }
 
@@ -270,6 +293,27 @@ function setStateNewGame()
 {
 	if (!arState[STATE_INIT_NEWGAME])
 	{ 
+		countHumanPlayer = 0;
+		countCompPlayer = 0;
+		// count human and computer player 
+		var cb:UICheckbox = GameObject.Find("Checkbox_H1").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		cb = GameObject.Find("Checkbox_H2").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		cb = GameObject.Find("Checkbox_H3").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		cb = GameObject.Find("Checkbox_H4").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		
+		cb = GameObject.Find("Checkbox_C2").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		cb = GameObject.Find("Checkbox_C3").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		cb = GameObject.Find("Checkbox_C4").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		
+		countPlayer = countHumanPlayer + countCompPlayer;
+		
 		arState[STATE_INIT_NEWGAME] = true;
 	}
 }
@@ -543,14 +587,31 @@ function CreateMainMenu()
 		mainMenuClone = Instantiate(mainMenu, mainPos, Quaternion.identity); 
 	}
 	mainMenuClone.SetActive(true);
+	var ib:UIInput;
 	var cb:UICheckbox;
 	var go:GameObject = GameObject.FindGameObjectWithTag("fsm");
 	
-	cb = GameObject.Find("Checkbox_L1").GetComponent(UICheckbox);
+	cb = GameObject.Find("Checkbox_H2").GetComponent(UICheckbox);
 	cb.eventReceiver = go;
-	cb = GameObject.Find("Checkbox_L2").GetComponent(UICheckbox);
+	cb = GameObject.Find("Checkbox_C2").GetComponent(UICheckbox);
 	cb.eventReceiver = go;
-	
+	cb = GameObject.Find("Checkbox_H3").GetComponent(UICheckbox);
+	cb.eventReceiver = go;
+	cb = GameObject.Find("Checkbox_C3").GetComponent(UICheckbox);
+	cb.eventReceiver = go;
+	cb = GameObject.Find("Checkbox_H4").GetComponent(UICheckbox);
+	cb.eventReceiver = go;
+	cb = GameObject.Find("Checkbox_C4").GetComponent(UICheckbox);
+	cb.eventReceiver = go;
+		
+	ib = GameObject.Find("Input_Name_1").GetComponent(UIInput);
+	ib.eventReceiver = go;
+	ib = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+	ib.eventReceiver = go;
+	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+	ib.eventReceiver = go;
+	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+	ib.eventReceiver = go;
 	localizeMainMenu();
 }
 
@@ -728,8 +789,30 @@ function localizeMainMenu()
 	var loca:CoinSnapLoc = CoinLoca.GetComponent("CoinSnapLoc");
 	loca.setLang(lang);
 	
-	var menuPlayerLabel: UILabel = GameObject.Find("Label_Player").GetComponent(UILabel);
-	menuPlayerLabel.text = loca.getLoc("spieler");
+	var tempLabel: UILabel = GameObject.Find("Label_Player").GetComponent(UILabel);
+	tempLabel.text = loca.getLoc("spieler");
+	tempLabel = GameObject.Find("Checkbox_H1").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("human");
+	tempLabel = GameObject.Find("Checkbox_H2").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("human");
+	tempLabel = GameObject.Find("Checkbox_H3").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("human");
+	tempLabel = GameObject.Find("Checkbox_H4").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("human");
+	tempLabel = GameObject.Find("Label_Name").GetComponent(UILabel);
+	tempLabel.text = loca.getLoc("deinname");
+	tempLabel = GameObject.Find("Input_Name_1").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("hiertippen");
+	tempLabel = GameObject.Find("Input_Name_2").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("hiertippen");
+	tempLabel = GameObject.Find("Input_Name_3").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("hiertippen");
+	tempLabel = GameObject.Find("Input_Name_4").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("hiertippen");
+	tempLabel = GameObject.Find("Button_Play").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("spielen");
+	tempLabel = GameObject.Find("Button_Credits").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("abspann");
 }
 
 function setStateCoinIsActive()
