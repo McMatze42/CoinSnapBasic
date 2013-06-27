@@ -202,7 +202,7 @@ function comp2checked(setIt:boolean)
 		var ib:UIInput = GameObject.Find("Input_Name_2").GetComponent(UIInput);
 		ib.enabled = false;
 		var tempLabel:UILabel = GameObject.Find("Input_Name_2").GetComponentInChildren(UILabel);
-		tempLabel.text = "Comp #2";
+		tempLabel.text = "Comp #1";
 	}
 }
 
@@ -241,7 +241,7 @@ function comp3checked(setIt:boolean)
 	{
 		if (isFree == true)
 		{
-			tempLabel.text = "Comp #3";
+			tempLabel.text = "Comp #2";
 		}
 		else
 		{
@@ -290,7 +290,7 @@ function comp4checked(setIt:boolean)
 	{
 		if (isFree == true)
 		{
-			tempLabel.text = "Comp #4";
+			tempLabel.text = "Comp #3";
 		}
 		else
 		{
@@ -306,21 +306,36 @@ function comp4checked(setIt:boolean)
 
 function OnSubmit ()
 {
-	var tempLabel:UILabel = GameObject.Find("Input_Name_1").GetComponentInChildren(UILabel);
-	var text: String = tempLabel.text;
-	if (!String.IsNullOrEmpty(text))
-	{
-		if (text != "Type here")
-		{	
-			namePlayer1 = text;
-			buttonPlay.isEnabled = true;
-		}	
-	}
-	
-	var ib:UIInput = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+	//var tempLabel:UILabel = GameObject.Find("Input_Name_1").GetComponentInChildren(UILabel);
+	var ib:UIInput = GameObject.Find("Input_Name_1").GetComponent(UIInput);
+	var text: String = ib.text;
 	if ((ib != null) && (ib.enabled == true))
 	{
-		text = ib.text;
+		if (!String.IsNullOrEmpty(text))
+		{
+			if (text != "Type here")
+			{	
+				namePlayer1 = text.Trim();
+				buttonPlay.isEnabled = true;
+			}	
+		}
+	}
+	
+	ib = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+	text = ib.text;
+	namePlayer2 = text;
+	
+	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+	text = ib.text;
+	namePlayer3 = text;
+	
+	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+	text = ib.text;
+	namePlayer4 = text;
+	/*
+	if ((ib != null) && (ib.enabled == true))
+	{
+		
 		if (!String.IsNullOrEmpty(text))
 		{
 			if (text != "")
@@ -355,6 +370,7 @@ function OnSubmit ()
 			}	
 		}
 	}
+	*/
 }
 
 // state functions
@@ -387,7 +403,7 @@ function setStateNewGame()
 		if (cb.isChecked) countCompPlayer++;
 		
 		countPlayer = countHumanPlayer + countCompPlayer;
-		
+		Destroy(mainMenuClone);
 		arState[STATE_INIT_NEWGAME] = true;
 	}
 }
@@ -435,7 +451,6 @@ function StateNewRound(state:int)
 	//Debug.Log("State: " + state);
 	if (!arState[state])
 	{
-		//Debug.Log("State: " + arStateNames[state]);
 		ResetCamera();
 		ResetCoins();
 		actualPlayer = -1;
@@ -461,14 +476,14 @@ function StateNextPlayer(state:int)
 	if (!arState[state])
 	{
 		//Debug.Log("State: " + arStateNames[state]);
-		actualPlayer++;
-		if (actualPlayer <= countPlayer)
+		actualPlayer++; // starts with -1 -> 0 at this point (due to array index)
+		if (actualPlayer < countPlayer)
 		{
 			coinDoesntMove = 0;
 			setHUDInfos();
 			CreateCoin();
 			
-			if (actualPlayer < 1)
+			if (actualPlayer < countHumanPlayer)
 			{
 				SnapCoin.GetComponent(CoinForce).setHumanTrue();
 			}
@@ -480,7 +495,8 @@ function StateNextPlayer(state:int)
 		}
 		else
 		{
-			EditStatesFromState(STATE_NEWROUND);	
+			EditStatesToState(STATE_SCORE);
+			EditStatesFromState(STATE_SCORE);	
 		}
 	}
 }
@@ -558,7 +574,8 @@ function StateScore(state:int)
 				// who wins?
 				var Nearest:int = 0;
 				var Distance:float = 999.99;
-				for (var i:int = 0; i <= countPlayer; i++ )
+				var Winner:int = 0;
+				for (var i:int = 0; i < countPlayer; i++ )
 				{
 					var Dist:float = arPlayerDistance[i];
 					if (Dist < Distance)
@@ -567,32 +584,37 @@ function StateScore(state:int)
 						Nearest = i;
 					}
 				}
+				Winner = Nearest + 1;
 				//Debug.Log("The winner is: " + Nearest);
 				infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
-				if (Nearest == 0)
-				{
-					
-					infoLabel.text = "YOU WIN!";
-					roundsWon++;
-				}
-				else
-				{
-					infoLabel.text = "YOU LOSE!";
-				}
+				if (Winner == 1) infoLabel.text = namePlayer1 + "\n";
+				if (Winner == 2) infoLabel.text = namePlayer2 + "\n";
+				if (Winner == 3) infoLabel.text = namePlayer3 + "\n";
+				if (Winner == 4) infoLabel.text = namePlayer4 + "\n";
+				infoLabel.text += loca.getLoc("youwin");
 				infoLabel.enabled = true;
+				
 				nextGoOnTime = Time.time + 3;
 				winSplashShown = true;
 				// get the money
-				for (i = 0; i <= countPlayer; i++ )
+				for (i = 0; i < countPlayer; i++ )
 				{
 					var Money:int = arPlayerMoney[i];
 					if (Nearest == i)
 					{
-						arPlayerMoney[i] = Money + countPlayer;
+						arPlayerMoney[i] = Money + (countPlayer - 1);
 					}
 					else
 					{
 						arPlayerMoney[i] = Money - 1;
+					}
+				}
+				
+				if (countHumanPlayer == 1)
+				{
+					if (Winner == 1)
+					{
+						roundsWon++;
 					}
 				}
 			}
@@ -710,6 +732,8 @@ function CreateHUD()
 	coinHudClone.SetActive(true);
 	infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
 	infoLabel.enabled = false;
+	
+	LocalizeCoinHUD();
 }
 
 function setHUDInfos()
@@ -718,20 +742,23 @@ function setHUDInfos()
 	roundLabel.text = "[2EFE2E]" + actualRound.ToString() + "[-]";
 	
 	NameLabel = GameObject.Find("Label_Name").GetComponent(UILabel);
-	if (actualPlayer < 1)
-	{
-		NameLabel.text = "[2EFE2E]" + namePlayer1 + "[-]";
-	}
-	else
-	{
-		NameLabel.text = "[2EFE2E]" + "Comp #" + actualPlayer.ToString() + "[-]";
-	}
+	if (actualPlayer == 0) NameLabel.text = "[2EFE2E]" + namePlayer1 + "[-]";
+	if (actualPlayer == 1) NameLabel.text = "[2EFE2E]" + namePlayer2 + "[-]";
+	if (actualPlayer == 2) NameLabel.text = "[2EFE2E]" + namePlayer3 + "[-]";
+	if (actualPlayer == 3) NameLabel.text = "[2EFE2E]" + namePlayer4 + "[-]";
 	
 	MoneyLabel = GameObject.Find("Label_Money").GetComponent(UILabel);
 	MoneyLabel.text = "[2EFE2E]" + arPlayerMoney[actualPlayer].ToString() + "[-]";
 	
 	LevelLabel = GameObject.Find("Label_Level").GetComponent(UILabel);
-	LevelLabel.text = "[2EFE2E]" + gameLevel.ToString() + "[-]";
+	if (countHumanPlayer == 1)
+	{
+		LevelLabel.text = "[2EFE2E]" + gameLevel.ToString() + "[-]";
+	}
+	else
+	{
+		LevelLabel.text = "[2EFE2E] - [-]";
+	}
 }
 
 function CreateRoundEndScreen()
@@ -758,9 +785,10 @@ function setRoundEndInfos()
 	var gefunden: boolean = false;
 	var place:int = 0;
 	var nextLevel: boolean = false;
+	var BestPlayer:int = 0;
 	while (true)
 	{
-		for (var i:int = 0; i <= countPlayer; i++ )
+		for (var i:int = 0; i < countPlayer; i++ )
 		{
 			var Cr:int = arPlayerMoney[i];
 			if ((Cr > Credits) && (Cr >= 0))
@@ -770,34 +798,32 @@ function setRoundEndInfos()
 				gefunden = true;
 			}
 		}
+		BestPlayer = Best + 1;
 		if (gefunden)
 		{
 			place++;
-			if (Best < 1)
+			strScore += place.ToString();
+			strScore += ". ";
+			if (BestPlayer == 1) strScore += "[2EFE2E]" + namePlayer1 + "[-]";
+			if (BestPlayer == 2) strScore += "[2EFE2E]" + namePlayer2 + "[-]";
+			if (BestPlayer == 3) strScore += "[2EFE2E]" + namePlayer3 + "[-]";
+			if (BestPlayer == 4) strScore += "[2EFE2E]" + namePlayer4 + "[-]";
+			strScore += " - ";
+			strScore += Credits.ToString();
+			strScore += " " + loca.getLoc("geld") + "\n";
+			if (place == 1)
 			{
-				strScore += place.ToString();
-				strScore += ". ";
-				strScore += namePlayer1;
-				strScore += " - ";
-				strScore += Credits.ToString();
-				strScore += " Credits\n";
-				coinsWon = Credits - startEuros; 
-			}
-			else
-			{
-				strScore += place.ToString();
-				strScore += ". ";
-				strScore += "Comp #";
-				strScore += Best.ToString();
-				strScore += " - ";
-				strScore += Credits.ToString();
-				strScore += " Credits\n";
+				coinsWon = Credits - startEuros;
 			}
 			
-			if ((place == 1) && (Best == 0))
+			if (countHumanPlayer == 1)
 			{
-				nextLevel = true;
-				gameLevel++;
+				// Level only if 1 human
+				if ((place == 1) && (Best < 1))
+				{
+					nextLevel = true;
+					gameLevel++;
+				}
 			}
 			gefunden = false;
 			arPlayerMoney[Best] = -1;
@@ -808,66 +834,81 @@ function setRoundEndInfos()
 			break;
 		}
 	}
-	strScore += "\n";
-	switch (roundsWon)
-	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-			strScore += "Well, try again.";
-		break;	
-		case 4:
-			strScore += "";
-		break;
-		case 5:
-			strScore += "It's getting better.";
-		break;	
-		case 6:
-		case 7:
-			strScore += "Yes! You got it!";
-		break;
-		case 8:
-			strScore += "Wow...great!";
-		break;
-		case 9:
-			strScore += "Awesome! 9/10 rounds!";
-		break;
-		case 10:
-			strScore += "You are the Coin King!";
-		break;
-		default:
-		break;
-	}
-	strScore += "\n";
 	
-	if (coinsWon >= 0)
+	if (countHumanPlayer == 1)
 	{
-		strScore += "You have won " + coinsWon.ToString() + " Credits!";	
-	}
-	else
-	{
-		strScore += "You lost "+ Mathf.Abs(coinsWon).ToString() + " Credits!";
-	}	
-	
-	scoreLabel.text = strScore;
-	
-	if (gameLevel <= maxGameLevel)
-	{
-		if (nextLevel)
+		strScore += "\n";
+		switch (roundsWon)
 		{
-			nextLevelLabel.text = "Yeah, you gain the\nNEXT LEVEL !";
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+				strScore += loca.getLoc("daswarnichts");
+			break;	
+			case 4:
+				strScore += "";
+			break;
+			case 5:
+				strScore += loca.getLoc("eswirdbesser");
+			break;	
+			case 6:
+			case 7:
+				strScore += loca.getLoc("sogehts");
+			break;
+			case 8:
+				strScore += loca.getLoc("grossartig");
+			break;
+			case 9:
+				strScore += loca.getLoc("wunderbar");
+			break;
+			case 10:
+				strScore += loca.getLoc("koenig");
+			break;
+			default:
+			break;
+		}
+		strScore += "\n";
+		
+		if (coinsWon >= 0)
+		{
+			strScore += loca.getLoc("duhastgewonnen") + " " + coinsWon.ToString() + " " + loca.getLoc("geld");
+			if (lang == 2) strScore += " " + loca.getLoc("gewonnen");
+			strScore += "!";	
 		}
 		else
 		{
-			nextLevelLabel.text = "";
+			strScore += loca.getLoc("duhastverloren")+" "+Mathf.Abs(coinsWon).ToString()+" "+ loca.getLoc("geld");
+			if (lang == 2) strScore += " " + loca.getLoc("gewonnen");
+			strScore += "!";
+		}	
+	}
+	scoreLabel.text = strScore;
+	
+	if (countHumanPlayer == 1)
+	{
+		if (gameLevel <= maxGameLevel)
+		{
+			if (nextLevel)
+			{
+				nextLevelLabel.text = loca.getLoc("nextlevel");
+			}
+			else
+			{
+				nextLevelLabel.text = "";
+			}
+		}
+		else
+		{
+			nextLevelLabel.text = loca.getLoc("maxlevel");
+			btNewGame.isEnabled = false;
 		}
 	}
-	else
-	{
-		nextLevelLabel.text = "Awesome!\nYou have reached the maximum level!\nGame Over...";
-		btNewGame.isEnabled = false;
-	}
+	
+	var tempLabel: UILabel = GameObject.Find("Button_NewGame").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("newgame");
+	tempLabel = GameObject.Find("Button_GoOn").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("goon");
 }
 
 function localizeMainMenu()
@@ -898,7 +939,7 @@ function localizeMainMenu()
 		}
 		else
 		{
-			ib.text = "Comp #2";
+			ib.text = "Comp #1";
 		}
 		
 		ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
@@ -912,7 +953,7 @@ function localizeMainMenu()
 			cb = GameObject.Find("Checkbox_C3").GetComponent(UICheckbox);
 			if (cb.isChecked == true)
 			{
-				ib.text = "Comp #3";
+				ib.text = "Comp #2";
 			}
 			else
 			{
@@ -954,6 +995,17 @@ function localizeMainMenu()
 	tempLabel.text = loca.getLoc("abspann");
 }
 
+function LocalizeCoinHUD()
+{
+	var tempLabel: UILabel = GameObject.Find("Label_Bez3").GetComponent(UILabel);
+	tempLabel.text = loca.getLoc("runde");
+	tempLabel = GameObject.Find("Label_Bez4").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("level");
+	tempLabel = GameObject.Find("Label_Bez1").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("spielername");
+	tempLabel = GameObject.Find("Label_Bez2").GetComponentInChildren(UILabel);
+	tempLabel.text = loca.getLoc("geld");
+}
 function setStateCoinIsActive()
 {
 	coinActive = true;

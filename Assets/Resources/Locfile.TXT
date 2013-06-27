@@ -25,7 +25,7 @@ duhastgewonnen|You have won|Du hast
 duhastverloren|You lost|Du hast
 gewonnen||gewonnen
 verloren||verloren
-nextlevel|Yeah, you gain the\nNEXT LEVEL !|Geschafft\nNEUES LEVEL !
-maxlevel|Awesome!\nYou have won the maximum level!\nGame Over...|Krass!\nDu hast das letzte Level gewonnen!\nGame Over...
+nextlevel|NEXT LEVEL !|NEUES LEVEL !
+maxlevel|Awesome!\\nYou have won the maximum level!\\nGame Over...|Krass!\\nDu hast das letzte Level gewonnen!\\nGame Over...
 newgame|New Game|Neues Spiel
 goon|GO ON!|WEITER!
