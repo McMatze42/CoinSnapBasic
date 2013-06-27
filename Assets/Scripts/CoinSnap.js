@@ -156,6 +156,314 @@ function Update ()
 	}
 }
 
+
+// state functions
+function setStateInitNewGame()
+{
+	if (coinRoundEndClone != null)
+	{
+		Destroy(coinRoundEndClone);
+	}
+	if (coinHudClone != null)
+	{
+		Destroy(coinHudClone);
+	}
+	
+	EditStatesFromState(STATE_INIT_NEWGAME);
+}
+
+function setStateNewGame()
+{
+	if (!arState[STATE_INIT_NEWGAME])
+	{ 
+		var cb:UICheckbox;
+		countHumanPlayer = 1;
+		countCompPlayer = 0;
+		// count human and computer player 
+		cb = GameObject.Find("Checkbox_H2").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		cb = GameObject.Find("Checkbox_H3").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		cb = GameObject.Find("Checkbox_H4").GetComponent(UICheckbox);
+		if (cb.isChecked) countHumanPlayer++;
+		
+		cb = GameObject.Find("Checkbox_C2").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		cb = GameObject.Find("Checkbox_C3").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		cb = GameObject.Find("Checkbox_C4").GetComponent(UICheckbox);
+		if (cb.isChecked) countCompPlayer++;
+		
+		countPlayer = countHumanPlayer + countCompPlayer;
+		Destroy(mainMenuClone);
+		arState[STATE_INIT_NEWGAME] = true;
+	}
+}
+
+function setStateNewGameFromRoundEnd()
+{
+	RoundEndShown = false;
+	EditStatesFromState(STATE_NEWGAME);
+	EditStatesToState(STATE_NEWGAME); // alles bis x auf true
+}
+
+function setStateGameOver()
+{
+	EditStatesToState(STATE_CREDITS); // alles bis x auf true
+}
+
+function StateInitNewGame(state:int)
+{
+	if (mainMenuClone == null)
+	{
+		gameLevel = 1;
+		loca = CoinLoca.GetComponent("CoinSnapLoc");
+		CreateMainMenu();
+	}	
+}
+
+function StateNewGame(state:int)
+{
+	if (!arState[state])
+	{
+		//Debug.Log("State: " + arStateNames[state]);
+		var CoinName: String = "";
+		ResetEverything();
+		actualRound = 0;
+		roundsWon = 0;
+		coinsWon = 0;
+		CreateHUD();
+	
+		arState[state] = true;
+	}
+}
+
+function StateNewRound(state:int)
+{
+	//Debug.Log("State: " + state);
+	if (!arState[state])
+	{
+		ResetCamera();
+		ResetCoins();
+		actualPlayer = -1;
+		infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
+		infoLabel.enabled = false;
+		winSplashShown = false;
+				
+		if (actualRound < maxRounds)
+		{
+			actualRound++;
+			arState[state] = true;
+		}
+		else
+		{
+			EditStatesToState(STATE_LEVELEND);
+		}
+	}
+}
+
+function StateNextPlayer(state:int)
+{
+
+	if (!arState[state])
+	{
+		//Debug.Log("State: " + arStateNames[state]);
+		actualPlayer++; // starts with -1 -> 0 at this point (due to array index)
+		if (actualPlayer < countPlayer)
+		{
+			coinDoesntMove = 0;
+			setHUDInfos();
+			CreateCoin();
+			
+			if (actualPlayer < countHumanPlayer)
+			{
+				SnapCoin.GetComponent(CoinForce).setHumanTrue();
+			}
+			else
+			{
+				SnapCoin.GetComponent(CoinForce).setHumanFalse();
+			}
+			arState[state] = true;
+		}
+		else
+		{
+			EditStatesToState(STATE_SCORE);
+			EditStatesFromState(STATE_SCORE);	
+		}
+	}
+}
+
+function StateCoinIsActive(state:int)
+{
+	if (actualPlayer <= countPlayer)
+	{
+		if (!arState[state] && coinActive)
+		{
+			// wait until coin doesn't move anymore
+			if (((newCoinPos == oldCoinPos) && (newCoinPos.y < 0.2)) || (newCoinPos.y < -20))
+			{
+				coinDoesntMove++;
+				if (coinDoesntMove >= 5)
+				{
+					//Debug.Log("--- coin does not move ---");
+					arState[state] = true;
+				}
+			}
+			else
+			{
+				coinDoesntMove = 0;
+			}
+		}
+	}
+	else
+	{
+		arState[state] = true;
+	}
+}
+
+function StateCoinIsOnFloor(state:int)
+{
+	if (actualPlayer <= countPlayer)
+	{
+		if (!arState[state])
+		{
+			// Coin liegt
+			// Entfernung zur Wand?
+			arPlayerDistance[actualPlayer] = 3 - newCoinPos.z;
+			//var coinLabelPos = newCoinPos;
+			//coinLabelPos.y -= 10.0;
+			var coinLabel = Instantiate(UICoinName, newCoinPos, Quaternion.identity);
+			if (actualPlayer == 0) (coinLabel.GetComponent(TextMesh) as TextMesh).text = namePlayer1;
+			if (actualPlayer == 1) (coinLabel.GetComponent(TextMesh) as TextMesh).text = namePlayer2;
+			if (actualPlayer == 2) (coinLabel.GetComponent(TextMesh) as TextMesh).text = namePlayer3;
+			if (actualPlayer == 3) (coinLabel.GetComponent(TextMesh) as TextMesh).text = namePlayer4;	
+			arCoinLabels.push(coinLabel);
+
+			if (actualPlayer == countPlayer)
+			{
+				arState[state] = true;
+			}
+			else
+			{
+				EditStatesFromState(STATE_NEXTPLAYER);
+			}
+		}
+	}
+}
+
+function StateScore(state:int)
+{
+	if (!arState[state])
+	{
+		if (actualPlayer <= countPlayer)
+		{
+			if (!winSplashShown)
+			{
+				// who wins?
+				var Nearest:int = 0;
+				var Distance:float = 999.99;
+				var Winner:int = 0;
+				for (var i:int = 0; i < countPlayer; i++ )
+				{
+					var Dist:float = arPlayerDistance[i];
+					if (Dist < Distance)
+					{
+						Distance = Dist;
+						Nearest = i;
+					}
+				}
+				Winner = Nearest + 1;
+				//Debug.Log("The winner is: " + Nearest);
+				infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
+				if (Winner == 1) infoLabel.text = namePlayer1 + "\n";
+				if (Winner == 2) infoLabel.text = namePlayer2 + "\n";
+				if (Winner == 3) infoLabel.text = namePlayer3 + "\n";
+				if (Winner == 4) infoLabel.text = namePlayer4 + "\n";
+				infoLabel.text += loca.getLoc("youwin");
+				infoLabel.enabled = true;
+				
+				nextGoOnTime = Time.time + 3;
+				winSplashShown = true;
+				// get the money
+				for (i = 0; i < countPlayer; i++ )
+				{
+					var Money:int = arPlayerMoney[i];
+					if (Nearest == i)
+					{
+						arPlayerMoney[i] = Money + (countPlayer - 1);
+					}
+					else
+					{
+						arPlayerMoney[i] = Money - 1;
+					}
+				}
+				
+				if (countHumanPlayer == 1)
+				{
+					if (Winner == 1)
+					{
+						roundsWon++;
+					}
+				}
+			}
+			if (Time.time > nextGoOnTime)
+			{
+				arState[state] = true;		
+				EditStatesFromState(STATE_NEWROUND);
+			}
+		}
+	}
+}
+
+function StateLevelEnd(state:int)
+{
+	if (!arState[state])
+	{
+		if (!RoundEndShown)
+		{
+			//Debug.Log("State: " + arStateNames[state]);
+			CreateRoundEndScreen();
+			nextGoOnTime = Time.time + 999;
+			RoundEndShown = true;
+		}
+		if (Time.time > nextGoOnTime)
+		{
+			arState[state] = true;
+			RoundEndShown = false;
+			coinRoundEndClone.SetActive(false);
+			if (actualRound >= maxRounds)
+			{				
+				EditStatesFromState(STATE_INIT_NEWGAME); // alles auf false
+				EditStatesToState(STATE_NEWGAME); // alles bis x auf true
+			}
+			else
+			{
+				EditStatesFromState(STATE_INIT_NEWGAME); // alles auf false
+				EditStatesToState(STATE_NEWROUND); // alles bis x auf true	
+			}
+		}
+	}
+}
+
+function StateGameOver(state:int)
+{
+	if (!arState[state])
+	{
+		//Debug.Log("State: " + arStateNames[state]);
+		// EndScreen zeigen
+		arState[state] = true;
+	}
+}
+
+function StateCredits(state:int)
+{
+	if (UICreditsClone == null)
+	{
+		UICreditsClone = Instantiate(UICredits, creditsPos, Quaternion.identity);
+	}
+	UICreditsClone.SetActive(true);
+}
+
 // GUI functions
 function setNewLocalizationEng(setIt: boolean)
 {
@@ -321,359 +629,17 @@ function OnSubmit ()
 		}
 	}
 	
-	ib = GameObject.Find("Input_Name_2").GetComponent(UIInput);
-	text = ib.text;
+	var tempLabel: UILabel = GameObject.Find("Input_Name_2").GetComponentInChildren(UILabel);
+	text = tempLabel.text;
 	namePlayer2 = text;
 	
-	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
-	text = ib.text;
+	tempLabel = GameObject.Find("Input_Name_3").GetComponentInChildren(UILabel);
+	text = tempLabel.text;
 	namePlayer3 = text;
 	
-	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
-	text = ib.text;
+	tempLabel = GameObject.Find("Input_Name_4").GetComponentInChildren(UILabel);
+	text = tempLabel.text;
 	namePlayer4 = text;
-	/*
-	if ((ib != null) && (ib.enabled == true))
-	{
-		
-		if (!String.IsNullOrEmpty(text))
-		{
-			if (text != "")
-			{	
-				namePlayer2 = text;
-			}	
-		}
-	}
-	
-	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
-	if ((ib != null) && (ib.enabled == true))
-	{
-		text = ib.text;
-		if (!String.IsNullOrEmpty(text))
-		{
-			if (text != "")
-			{	
-				namePlayer3 = text;
-			}	
-		}
-	}
-	
-	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
-	if ((ib != null) && (ib.enabled == true))
-	{
-		text = ib.text;
-		if (!String.IsNullOrEmpty(text))
-		{
-			if (text != "")
-			{	
-				namePlayer4 = text;
-			}	
-		}
-	}
-	*/
-}
-
-// state functions
-
-function setStateInitNewGame()
-{
-	EditStatesFromState(STATE_INIT_NEWGAME);
-}
-
-function setStateNewGame()
-{
-	if (!arState[STATE_INIT_NEWGAME])
-	{ 
-		var cb:UICheckbox;
-		countHumanPlayer = 1;
-		countCompPlayer = 0;
-		// count human and computer player 
-		cb = GameObject.Find("Checkbox_H2").GetComponent(UICheckbox);
-		if (cb.isChecked) countHumanPlayer++;
-		cb = GameObject.Find("Checkbox_H3").GetComponent(UICheckbox);
-		if (cb.isChecked) countHumanPlayer++;
-		cb = GameObject.Find("Checkbox_H4").GetComponent(UICheckbox);
-		if (cb.isChecked) countHumanPlayer++;
-		
-		cb = GameObject.Find("Checkbox_C2").GetComponent(UICheckbox);
-		if (cb.isChecked) countCompPlayer++;
-		cb = GameObject.Find("Checkbox_C3").GetComponent(UICheckbox);
-		if (cb.isChecked) countCompPlayer++;
-		cb = GameObject.Find("Checkbox_C4").GetComponent(UICheckbox);
-		if (cb.isChecked) countCompPlayer++;
-		
-		countPlayer = countHumanPlayer + countCompPlayer;
-		Destroy(mainMenuClone);
-		arState[STATE_INIT_NEWGAME] = true;
-	}
-}
-
-function setStateNewGameFromRoundEnd()
-{
-	RoundEndShown = false;
-	EditStatesFromState(STATE_NEWGAME);
-	EditStatesToState(STATE_NEWGAME); // alles bis x auf true
-}
-
-function setStateGameOver()
-{
-	EditStatesToState(STATE_CREDITS); // alles bis x auf true
-}
-
-function StateInitNewGame(state:int)
-{
-	if (mainMenuClone == null)
-	{
-		gameLevel = 1;
-		loca = CoinLoca.GetComponent("CoinSnapLoc");
-		CreateMainMenu();
-	}	
-}
-
-function StateNewGame(state:int)
-{
-	if (!arState[state])
-	{
-		//Debug.Log("State: " + arStateNames[state]);
-		var CoinName: String = "";
-		ResetEverything();
-		actualRound = 0;
-		roundsWon = 0;
-		coinsWon = 0;
-		CreateHUD();
-	
-		arState[state] = true;
-	}
-}
-
-function StateNewRound(state:int)
-{
-	//Debug.Log("State: " + state);
-	if (!arState[state])
-	{
-		ResetCamera();
-		ResetCoins();
-		actualPlayer = -1;
-		infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
-		infoLabel.enabled = false;
-		winSplashShown = false;
-				
-		if (actualRound < maxRounds)
-		{
-			actualRound++;
-			arState[state] = true;
-		}
-		else
-		{
-			EditStatesToState(STATE_LEVELEND);
-		}
-	}
-}
-
-function StateNextPlayer(state:int)
-{
-
-	if (!arState[state])
-	{
-		//Debug.Log("State: " + arStateNames[state]);
-		actualPlayer++; // starts with -1 -> 0 at this point (due to array index)
-		if (actualPlayer < countPlayer)
-		{
-			coinDoesntMove = 0;
-			setHUDInfos();
-			CreateCoin();
-			
-			if (actualPlayer < countHumanPlayer)
-			{
-				SnapCoin.GetComponent(CoinForce).setHumanTrue();
-			}
-			else
-			{
-				SnapCoin.GetComponent(CoinForce).setHumanFalse();
-			}
-			arState[state] = true;
-		}
-		else
-		{
-			EditStatesToState(STATE_SCORE);
-			EditStatesFromState(STATE_SCORE);	
-		}
-	}
-}
-
-function StateCoinIsActive(state:int)
-{
-	if (actualPlayer <= countPlayer)
-	{
-		if (!arState[state] && coinActive)
-		{
-			// wait until coin doesn't move anymore
-			if (((newCoinPos == oldCoinPos) && (newCoinPos.y < 0.2)) || (newCoinPos.y < -20))
-			{
-				coinDoesntMove++;
-				if (coinDoesntMove >= 5)
-				{
-					//Debug.Log("--- coin does not move ---");
-					arState[state] = true;
-				}
-			}
-			else
-			{
-				coinDoesntMove = 0;
-			}
-		}
-	}
-	else
-	{
-		arState[state] = true;
-	}
-}
-
-function StateCoinIsOnFloor(state:int)
-{
-	if (actualPlayer <= countPlayer)
-	{
-		if (!arState[state])
-		{
-			// Coin liegt
-			// Entfernung zur Wand?
-			arPlayerDistance[actualPlayer] = 3 - newCoinPos.z;
-			//var coinLabelPos = newCoinPos;
-			//coinLabelPos.y -= 10.0;
-			var coinLabel = Instantiate(UICoinName, newCoinPos, Quaternion.identity);
-			if (actualPlayer < 1)
-			{
-				(coinLabel.GetComponent(TextMesh) as TextMesh).text = namePlayer1;
-			}
-			else
-			{
-				(coinLabel.GetComponent(TextMesh) as TextMesh).text = "Comp #" + actualPlayer.ToString();
-			}	
-			arCoinLabels.push(coinLabel);
-
-			if (actualPlayer == countPlayer)
-			{
-				arState[state] = true;
-			}
-			else
-			{
-				EditStatesFromState(STATE_NEXTPLAYER);
-			}
-		}
-	}
-}
-
-function StateScore(state:int)
-{
-	if (!arState[state])
-	{
-		if (actualPlayer <= countPlayer)
-		{
-			if (!winSplashShown)
-			{
-				// who wins?
-				var Nearest:int = 0;
-				var Distance:float = 999.99;
-				var Winner:int = 0;
-				for (var i:int = 0; i < countPlayer; i++ )
-				{
-					var Dist:float = arPlayerDistance[i];
-					if (Dist < Distance)
-					{
-						Distance = Dist;
-						Nearest = i;
-					}
-				}
-				Winner = Nearest + 1;
-				//Debug.Log("The winner is: " + Nearest);
-				infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
-				if (Winner == 1) infoLabel.text = namePlayer1 + "\n";
-				if (Winner == 2) infoLabel.text = namePlayer2 + "\n";
-				if (Winner == 3) infoLabel.text = namePlayer3 + "\n";
-				if (Winner == 4) infoLabel.text = namePlayer4 + "\n";
-				infoLabel.text += loca.getLoc("youwin");
-				infoLabel.enabled = true;
-				
-				nextGoOnTime = Time.time + 3;
-				winSplashShown = true;
-				// get the money
-				for (i = 0; i < countPlayer; i++ )
-				{
-					var Money:int = arPlayerMoney[i];
-					if (Nearest == i)
-					{
-						arPlayerMoney[i] = Money + (countPlayer - 1);
-					}
-					else
-					{
-						arPlayerMoney[i] = Money - 1;
-					}
-				}
-				
-				if (countHumanPlayer == 1)
-				{
-					if (Winner == 1)
-					{
-						roundsWon++;
-					}
-				}
-			}
-			if (Time.time > nextGoOnTime)
-			{
-				arState[state] = true;		
-				EditStatesFromState(STATE_NEWROUND);
-			}
-		}
-	}
-}
-
-function StateLevelEnd(state:int)
-{
-	if (!arState[state])
-	{
-		if (!RoundEndShown)
-		{
-			//Debug.Log("State: " + arStateNames[state]);
-			CreateRoundEndScreen();
-			nextGoOnTime = Time.time + 999;
-			RoundEndShown = true;
-		}
-		if (Time.time > nextGoOnTime)
-		{
-			arState[state] = true;
-			RoundEndShown = false;
-			coinRoundEndClone.SetActive(false);
-			if (actualRound >= maxRounds)
-			{				
-				EditStatesFromState(STATE_INIT_NEWGAME); // alles auf false
-				EditStatesToState(STATE_NEWGAME); // alles bis x auf true
-			}
-			else
-			{
-				EditStatesFromState(STATE_INIT_NEWGAME); // alles auf false
-				EditStatesToState(STATE_NEWROUND); // alles bis x auf true	
-			}
-		}
-	}
-}
-
-function StateGameOver(state:int)
-{
-	if (!arState[state])
-	{
-		//Debug.Log("State: " + arStateNames[state]);
-		// EndScreen zeigen
-		arState[state] = true;
-	}
-}
-
-function StateCredits(state:int)
-{
-	if (UICreditsClone == null)
-	{
-		UICreditsClone = Instantiate(UICredits, creditsPos, Quaternion.identity);
-	}
-	UICreditsClone.SetActive(true);
 }
 
 // misc functions
@@ -904,6 +870,10 @@ function setRoundEndInfos()
 			btNewGame.isEnabled = false;
 		}
 	}
+	else
+	{
+		nextLevelLabel.text = "";	
+	}
 	
 	var tempLabel: UILabel = GameObject.Find("Button_NewGame").GetComponentInChildren(UILabel);
 	tempLabel.text = loca.getLoc("newgame");
@@ -1006,18 +976,23 @@ function LocalizeCoinHUD()
 	tempLabel = GameObject.Find("Label_Bez2").GetComponentInChildren(UILabel);
 	tempLabel.text = loca.getLoc("geld");
 }
+
+function coinIsReady()
+{
+	Camera.main.GetComponent(SmoothFollow).target = null;
+	ResetCamera();
+}
+
 function setStateCoinIsActive()
 {
 	coinActive = true;
-		
-	if (actualPlayer < 1)
+	if (actualPlayer < countHumanPlayer)
 	{
 		Camera.main.GetComponent(SmoothFollow).target = SnapCoin.transform;
 	}
 	else
 	{
 		Camera.main.GetComponent(SmoothFollow).target = null;
-		ResetCamera();
 	}
 }
 

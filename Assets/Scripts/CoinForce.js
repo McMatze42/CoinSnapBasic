@@ -17,6 +17,7 @@ private var CoinSnapLogic: GameObject;
 private var human: boolean = true;
 private var nonHumanWaitTime: int;
 private var nextThrowTime : float;
+private var coinIsReady: boolean = false;
 private var coinIsActive: boolean = false;
 private var deltatime: float = Time.deltaTime;
 private var touchFactor: float = 17.5;
@@ -39,63 +40,77 @@ function Update () {
 
 	if (human)
 	{
-		#if !UNITY_IPHONE
-		if (Input.GetMouseButtonDown(0))
+		if (Time.time > nextThrowTime)
 		{
-			forcex = mousepowerx * Input.GetAxis("Mouse X")/Time.deltaTime;
-			forcey = mousepowery * Input.GetAxis("Mouse Y")/Time.deltaTime;
-			forcez = 1.0;
-			// only forward and min 4.0
-			if (forcey < 4.0) forcey = 4.0;
-			// max forward drive
-			//Debug.Log("forcey: " + forcey);
-			if (forcey > 10.0)
-			{ 
-				if (forcey >= 16.0) forcey -= 8.0;
-				if ((forcey >= 14.0) && (forcey < 16.0)) forcey -= 6.0;
-				if ((forcey >= 12.0) && (forcey < 14.0)) forcey -= 4.0;
+			CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
+			if (!coinIsReady)
+			{
+				CoinSnapLogic.SendMessage("coinIsReady");
+				coinIsReady = true;				
 			}
 			
-			if (!coinIsActive)
+			#if !UNITY_IPHONE
+			if (Input.GetMouseButtonDown(0))
 			{
-				CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
-				CoinSnapLogic.SendMessage("setStateCoinIsActive");
-				coinIsActive = true;
-				audioSnap.Play();
-			}
-		}
-		#else
-		if (Input.touchCount > 0)
-		{
-			var touch:Touch = Input.GetTouch(0);
-			if (touch.phase == TouchPhase.Moved)
-			{
-				var touchPositionDelta:Vector2 = touch.deltaPosition;
-				forcey = (swipepowery*touchPositionDelta.y/deltatime) / touchFactor;
-				forcex = (swipepowerx*touchPositionDelta.x/deltatime) / touchFactor;
+				forcex = mousepowerx * Input.GetAxis("Mouse X")/Time.deltaTime;
+				forcey = mousepowery * Input.GetAxis("Mouse Y")/Time.deltaTime;
 				forcez = 1.0;
-				
-				// only forward and min 6.0
-				if (forcey < 6.0) forcey = 6.0;
+				// only forward and min 4.0
+				if (forcey < 4.0) forcey = 4.0;
 				// max forward drive
-				if (forcey > 12.0) forcey = 12.0;
+				//Debug.Log("forcey: " + forcey);
+				if (forcey > 10.0)
+				{ 
+					if (forcey >= 16.0) forcey -= 8.0;
+					if ((forcey >= 14.0) && (forcey < 16.0)) forcey -= 6.0;
+					if ((forcey >= 12.0) && (forcey < 14.0)) forcey -= 4.0;
+				}
+				
+				if (!coinIsActive)
+				{
+					CoinSnapLogic.SendMessage("setStateCoinIsActive");
+					coinIsActive = true;
+					audioSnap.Play();
+				}
 			}
-			
-			if (!coinIsActive)
+			#else
+			if (Input.touchCount > 0)
 			{
-				CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
-				CoinSnapLogic.SendMessage("setStateCoinIsActive");
-				coinIsActive = true;
-				audioSnap.Play();
+				var touch:Touch = Input.GetTouch(0);
+				if (touch.phase == TouchPhase.Moved)
+				{
+					var touchPositionDelta:Vector2 = touch.deltaPosition;
+					forcey = (swipepowery*touchPositionDelta.y/deltatime) / touchFactor;
+					forcex = (swipepowerx*touchPositionDelta.x/deltatime) / touchFactor;
+					forcez = 1.0;
+					
+					// only forward and min 6.0
+					if (forcey < 6.0) forcey = 6.0;
+					// max forward drive
+					if (forcey > 12.0) forcey = 12.0;
+				}
+				
+				if (!coinIsActive)
+				{
+					CoinSnapLogic.SendMessage("setStateCoinIsActive");
+					coinIsActive = true;
+					audioSnap.Play();
+				}
 			}
+			#endif
 		}
-		#endif
-		
 	}
 	else
 	{
 		if (Time.time > nextThrowTime)
 		{
+			CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
+			if (!coinIsReady)
+			{
+				CoinSnapLogic.SendMessage("coinIsReady");
+				coinIsReady = true;				
+			}
+			
 			var maxYRangeVon: float = 5.0 - levelMalus;
 			var maxYRangebis: float = 7.0 + levelMalus;
 			
@@ -108,7 +123,6 @@ function Update () {
 			
 			if (!coinIsActive)
 			{
-				CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
 				CoinSnapLogic.SendMessage("setStateCoinIsActive");
 				coinIsActive = true;	
 				audioSnap.Play();

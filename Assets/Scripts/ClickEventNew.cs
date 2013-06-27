@@ -20,7 +20,7 @@ public class ClickEventNew : MonoBehaviour {
 		if (enabled && trigger == Trigger.OnClick)
 		{
 			CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
-			CoinSnapLogic.SendMessage("setStateNewGameFromRoundEnd");
+			CoinSnapLogic.SendMessage("setStateInitNewGame");
 		}
 	}
 }

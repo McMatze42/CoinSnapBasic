@@ -26,6 +26,6 @@ duhastverloren|You lost|Du hast
 gewonnen||gewonnen
 verloren||verloren
 nextlevel|NEXT LEVEL !|NEUES LEVEL !
-maxlevel|Awesome!\\nYou have won the maximum level!\\nGame Over...|Krass!\\nDu hast das letzte Level gewonnen!\\nGame Over...
+maxlevel|Awesome! Game Over...|Krass! Game Over...
 newgame|New Game|Neues Spiel
 goon|GO ON!|WEITER!
