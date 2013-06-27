@@ -1,10 +1,9 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/CoinSnap.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\CoinSnap.js">
     <Files>
-      <File FileName="Assets/Scripts/CoinSnap.js" Line="241" Column="1" />
-      <File FileName="Assets/Scripts/CoinSnapLoc.js" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/ClickEventPlay.cs" Line="27" Column="46" />
+      <File FileName="Assets\Scripts\CoinSnap.js" Line="417" Column="22" />
+      <File FileName="Assets\Scripts\ClickEventPlay.cs" Line="24" Column="6" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

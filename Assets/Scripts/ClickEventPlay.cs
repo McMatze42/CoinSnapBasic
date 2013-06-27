@@ -20,8 +20,8 @@ public class ClickEventPlay : MonoBehaviour
 	{
 		if (enabled && trigger == Trigger.OnClick)
 		{
-			StartMenu = GameObject.FindGameObjectWithTag("startmenu");
-			StartMenu.SetActive(false);
+			//StartMenu = GameObject.FindGameObjectWithTag("startmenu");
+			//StartMenu.SetActive(false);
 			
 			CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
 			CoinSnapLogic.SendMessage("setStateNewGame");
