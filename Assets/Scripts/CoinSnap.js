@@ -52,12 +52,12 @@ private var namePlayer2: String = "Type here";
 private var namePlayer3: String = "Type here";
 private var namePlayer4: String = "Type here";
 
+var UICredits: GameObject; // UICredits prefab to anstantiate
 var coinRoundEnd: GameObject; // coinRoundEnd prefab to instantiate
 private var coinRoundEndClone: GameObject;
-var scoreLabel: UILabel; // caching Label to use
-var nextLevelLabel: UILabel;
-var btNewGame: UIButton;
-var UICredits: GameObject; // UICredits prefab to anstantiate
+private var scoreLabel: UILabel; // caching Label to use
+private var nextLevelLabel: UILabel;
+private var btNewGame: UIButton;
 private var UICreditsClone: GameObject;
 private var creditsPos:Vector3 = Vector3(7, 1, 10);
 
@@ -202,6 +202,10 @@ function setStateNewGame()
 
 function setStateNewGameFromRoundEnd()
 {
+	if (coinRoundEndClone != null)
+	{
+		Destroy(coinRoundEndClone);
+	}
 	RoundEndShown = false;
 	EditStatesFromState(STATE_NEWGAME);
 	EditStatesToState(STATE_NEWGAME); // alles bis x auf true
@@ -629,16 +633,16 @@ function OnSubmit ()
 		}
 	}
 	
-	var tempLabel: UILabel = GameObject.Find("Input_Name_2").GetComponentInChildren(UILabel);
-	text = tempLabel.text;
+	ib = GameObject.Find("Input_Name_2").GetComponent(UIInput);
+	text = ib.text;
 	namePlayer2 = text;
 	
-	tempLabel = GameObject.Find("Input_Name_3").GetComponentInChildren(UILabel);
-	text = tempLabel.text;
+	ib = GameObject.Find("Input_Name_3").GetComponent(UIInput);
+	text = ib.text;
 	namePlayer3 = text;
 	
-	tempLabel = GameObject.Find("Input_Name_4").GetComponentInChildren(UILabel);
-	text = tempLabel.text;
+	ib = GameObject.Find("Input_Name_4").GetComponent(UIInput);
+	text = ib.text;
 	namePlayer4 = text;
 }
 
@@ -777,14 +781,12 @@ function setRoundEndInfos()
 			strScore += " - ";
 			strScore += Credits.ToString();
 			strScore += " " + loca.getLoc("geld") + "\n";
-			if (place == 1)
+						
+			if ((countHumanPlayer == 1) && (BestPlayer == 1))
 			{
+				// only if 1 human
 				coinsWon = Credits - startEuros;
-			}
-			
-			if (countHumanPlayer == 1)
-			{
-				// Level only if 1 human
+				
 				if ((place == 1) && (Best < 1))
 				{
 					nextLevel = true;
@@ -836,7 +838,7 @@ function setRoundEndInfos()
 		}
 		strScore += "\n";
 		
-		if (coinsWon >= 0)
+		if (coinsWon > 0)
 		{
 			strScore += loca.getLoc("duhastgewonnen") + " " + coinsWon.ToString() + " " + loca.getLoc("geld");
 			if (lang == 2) strScore += " " + loca.getLoc("gewonnen");
@@ -845,7 +847,7 @@ function setRoundEndInfos()
 		else
 		{
 			strScore += loca.getLoc("duhastverloren")+" "+Mathf.Abs(coinsWon).ToString()+" "+ loca.getLoc("geld");
-			if (lang == 2) strScore += " " + loca.getLoc("gewonnen");
+			if (lang == 2) strScore += " " + loca.getLoc("verloren");
 			strScore += "!";
 		}	
 	}

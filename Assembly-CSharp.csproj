@@ -80,6 +80,7 @@
      <Compile Include="Assets\Scripts\ClickEventCredits.cs" />
      <Compile Include="Assets\Scripts\ClickEventExit.cs" />
      <Compile Include="Assets\Scripts\ClickEventNew.cs" />
+     <Compile Include="Assets\Scripts\ClickEventNewRound.cs" />
      <Compile Include="Assets\Scripts\ClickEventPlay.cs" />
      <None Include="Assets\NGUI\Resources\Shaders\Unlit - Depth Cutout.shader" />
      <None Include="Assets\NGUI\Examples\Models\Orc\Orc Skin.shader" />
