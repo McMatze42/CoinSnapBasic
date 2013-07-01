@@ -8,7 +8,7 @@ gesperrt|locked|gesperrt
 spielen|Play|Spielen
 abspann|Credits|Abspann
 ++CoinHUD
-spielername|Player Name|Spieler Name
+spielername|Player|Spieler
 geld|Coins|Münzen
 runde|Round|Runde
 level|Level|Level

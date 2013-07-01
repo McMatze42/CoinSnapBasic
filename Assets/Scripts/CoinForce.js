@@ -40,8 +40,8 @@ function Update () {
 
 	if (human)
 	{
-		if (Time.time > nextThrowTime)
-		{
+		//if (Time.time > nextThrowTime)
+		//{
 			CoinSnapLogic = GameObject.FindGameObjectWithTag("fsm");
 			if (!coinIsReady)
 			{
@@ -98,7 +98,7 @@ function Update () {
 				}
 			}
 			#endif
-		}
+		//}
 	}
 	else
 	{
