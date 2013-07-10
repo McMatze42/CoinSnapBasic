@@ -1,12 +1,16 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\CoinSnap.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\CoinForce.js">
     <Files>
-      <File FileName="Assets\Scripts\CoinSnap.js" Line="30" Column="35" />
+      <File FileName="Assets\Scripts\CoinSnap.js" Line="265" Column="48" />
+      <File FileName="Assets\Scripts\CoinForce.js" Line="89" Column="11" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\Users\Matze\Development\CoinSnapBasic\Assets\Scripts\CoinSnap.js" line="732" />
+      <Breakpoint file="C:\Users\Matze\Development\CoinSnapBasic\Assets\Scripts\CoinSnap.js" line="721" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

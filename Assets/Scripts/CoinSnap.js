@@ -6,6 +6,8 @@ var Coin:GameObject; // coin prefab to instantiate
 var SnapCoin:GameObject; // the active coin
 var UICoinName:GameObject; // the prefab of the coin label
 var CoinLoca:GameObject; // the prefab of the coin label
+var wallMats: Material[];
+var Barrel: GameObject; // prefab for barrels;
 private var isFree: boolean = true; // free or paid version
 private var arCoinLabels = new Array();
 private var arCoins = new Array();
@@ -27,11 +29,16 @@ private var nextGoOnTime:int = 0;
 private var winSplashShown: boolean = false;
 private var RoundEndShown: boolean = false;
 private var gameLevel: int = 1;
-private var maxGameLevel: int = 3;
+private var maxGameLevel: int = 10;
 private var roundsWon = 0;
 private var coinsWon = 0;
 private var lang: int = 1; // 1 = en-us, 2 = de-de
-private var loca: CoinSnapLoc;  
+private var loca: CoinSnapLoc;
+private var wallObject: GameObject;
+private var barrelClone1: GameObject;
+private var barrelClone2: GameObject;
+private var barrelPos1: Vector3 = Vector3(-1.64, 0, 2.0);
+private var barrelPos2: Vector3 = Vector3(1.84, 0, 2.0);
 
 // Gui
 var mainMenu:GameObject; //mainHUD prefeb to instantiate
@@ -65,7 +72,7 @@ private var creditsPos:Vector3 = Vector3(7, 1, 10);
 // State Vars
 private var STATE_INIT_NEWGAME: int = 0;
 private var STATE_NEWGAME: int = 1;
-private var STATE_NEWROUND: int = 2;
+private var STATE_NEWRACE: int = 2;
 private var STATE_NEXTPLAYER: int = 3;
 private var STATE_COINISACTIVE: int = 4;
 private var STATE_COINISONFLOOR: int = 5;
@@ -73,7 +80,7 @@ private var STATE_SCORE: int = 6;
 private var STATE_LEVELEND: int = 7;
 private var STATE_GAMEOVER: int = 8;
 private var STATE_CREDITS: int = 9;
-private var arStateNames = new Array("STATE_INIT_NEWGAME","STATE_NEWGAME","STATE_NEWROUND","STATE_NEXTPLAYER","STATE_COINISACTIVE","STATE_COINISONFLOOR","STATE_SCORE","STATE_LEVELEND","STATE_GAMEOVER", "STATE_CREDITS");
+private var arStateNames = new Array("STATE_INIT_NEWGAME","STATE_NEWGAME","STATE_NEWRACE","STATE_NEXTPLAYER","STATE_COINISACTIVE","STATE_COINISONFLOOR","STATE_SCORE","STATE_LEVELEND","STATE_GAMEOVER", "STATE_CREDITS");
 
 //private var state:int = null;
 private var state: int;
@@ -96,7 +103,7 @@ function Awake()
 	
 function Start () 
 {
-	
+	wallObject = GameObject.FindGameObjectWithTag("Wall");
 }
 
 function Update () 
@@ -118,7 +125,6 @@ function Update ()
 		}	
 	}
 	
-	//Debug.Log("State: " + arStateNames[state]);
 	switch (state)
 	{
 		case STATE_INIT_NEWGAME:
@@ -127,8 +133,8 @@ function Update ()
 		case STATE_NEWGAME:
 			StateNewGame(state);
 		break;
-		case STATE_NEWROUND:
-			StateNewRound(state);
+		case STATE_NEWRACE:
+			StateNewRace(state);
 		break;
 		case STATE_NEXTPLAYER:
 			StateNextPlayer(state);
@@ -218,6 +224,7 @@ function setStateGameOver()
 
 function StateInitNewGame(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (mainMenuClone == null)
 	{
 		gameLevel = 1;
@@ -236,15 +243,67 @@ function StateNewGame(state:int)
 		actualRound = 0;
 		roundsWon = 0;
 		coinsWon = 0;
+		
+		if (barrelClone1 != null)
+		{
+			Destroy(barrelClone1);
+		}
+		if (barrelClone2 != null)
+		{
+			Destroy(barrelClone2);
+		}
+				
 		CreateHUD();
+		
+		switch (gameLevel)
+		{
+			case 0:
+			case 1:
+				wallObject.renderer.material = wallMats[0];
+			break;
+			case 2:
+				wallObject.renderer.material = wallMats[1];
+			break;
+			case 3:
+				wallObject.renderer.material = wallMats[2];
+			break;
+			case 4:
+				wallObject.renderer.material = wallMats[3];
+			break;
+			case 5:
+				wallObject.renderer.material = wallMats[0];
+				placeBarrel1();
+			break;
+			case 6:
+				wallObject.renderer.material = wallMats[1];
+				placeBarrel2();
+			break;
+			case 7:
+				wallObject.renderer.material = wallMats[2];
+				placeBarrel1();
+			break;
+			case 8:
+				wallObject.renderer.material = wallMats[3];
+				placeBarrel2();
+			break;
+			case 9:
+			case 10:
+				wallObject.renderer.material = wallMats[0];
+				placeBarrel1();
+				placeBarrel2();
+			break;
+			default:
+				wallObject.renderer.material = wallMats[0];
+			break;
+		}
 	
 		arState[state] = true;
 	}
 }
 
-function StateNewRound(state:int)
+function StateNewRace(state:int)
 {
-	//Debug.Log("State: " + state);
+	//Debug.Log("State: " + arStateNames[state]);
 	if (!arState[state])
 	{
 		ResetCamera();
@@ -253,7 +312,7 @@ function StateNewRound(state:int)
 		infoLabel = GameObject.Find("Label_Info").GetComponent(UILabel);
 		infoLabel.enabled = false;
 		winSplashShown = false;
-				
+				        		
 		if (actualRound < maxRounds)
 		{
 			actualRound++;
@@ -300,6 +359,7 @@ function StateNextPlayer(state:int)
 
 function StateCoinIsActive(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (actualPlayer <= countPlayer)
 	{
 		if (!arState[state] && coinActive)
@@ -328,6 +388,7 @@ function StateCoinIsActive(state:int)
 
 function StateCoinIsOnFloor(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (actualPlayer <= countPlayer)
 	{
 		if (!arState[state])
@@ -358,6 +419,7 @@ function StateCoinIsOnFloor(state:int)
 
 function StateScore(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (!arState[state])
 	{
 		if (actualPlayer <= countPlayer)
@@ -414,7 +476,7 @@ function StateScore(state:int)
 			if (Time.time > nextGoOnTime)
 			{
 				arState[state] = true;		
-				EditStatesFromState(STATE_NEWROUND);
+				EditStatesFromState(STATE_NEWRACE);
 			}
 		}
 	}
@@ -422,6 +484,7 @@ function StateScore(state:int)
 
 function StateLevelEnd(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (!arState[state])
 	{
 		if (!RoundEndShown)
@@ -444,7 +507,7 @@ function StateLevelEnd(state:int)
 			else
 			{
 				EditStatesFromState(STATE_INIT_NEWGAME); // alles auf false
-				EditStatesToState(STATE_NEWROUND); // alles bis x auf true	
+				EditStatesToState(STATE_NEWRACE); // alles bis x auf true	
 			}
 		}
 	}
@@ -452,9 +515,9 @@ function StateLevelEnd(state:int)
 
 function StateGameOver(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (!arState[state])
 	{
-		//Debug.Log("State: " + arStateNames[state]);
 		// dummy
 		arState[state] = true;
 	}
@@ -462,6 +525,7 @@ function StateGameOver(state:int)
 
 function StateCredits(state:int)
 {
+	//Debug.Log("State: " + arStateNames[state]);
 	if (UICreditsClone == null)
 	{
 		UICreditsClone = Instantiate(UICredits, creditsPos, Quaternion.identity);
@@ -652,6 +716,24 @@ function OnSubmit ()
 }
 
 // misc functions
+function placeBarrel1()
+{
+	if (barrelClone1 == null)
+	{
+		barrelClone1 = Instantiate(Barrel, barrelPos1, Quaternion.identity);
+	}
+	barrelClone1.SetActive(true);	
+}
+
+function placeBarrel2()
+{
+	if (barrelClone2 == null)
+	{
+		barrelClone2 = Instantiate(Barrel, barrelPos2, Quaternion.identity);
+	}
+	barrelClone2.SetActive(true);	
+}
+
 function CreateMainMenu()
 {
 	if (mainMenuClone == null)
@@ -1031,7 +1113,6 @@ function SetNewCoinPos(pos:Vector3)
 
 function EditStatesFromState(FromState: int)
 {
-	//Debug.Log("--- EditStatesFromState --- " + FromState);
 	// sets all states to false at and after FromState	
 	for (var i:int = FromState; i < arState.length; i++)
 	{
@@ -1041,7 +1122,6 @@ function EditStatesFromState(FromState: int)
 
 function EditStatesToState(ToState: int)
 {
-	//Debug.Log("--- EditStatesToState --- " + ToState);
 	// sets all states to true until ToState	
 	for (var i:int = 0; i < ToState; i++)
 	{
