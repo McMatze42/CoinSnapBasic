@@ -227,7 +227,7 @@ function StateInitNewGame(state:int)
 	//Debug.Log("State: " + arStateNames[state]);
 	if (mainMenuClone == null)
 	{
-		gameLevel = 1;
+		gameLevel = 6;
 		loca = CoinLoca.GetComponent("CoinSnapLoc");
 		CreateMainMenu();
 	}	
@@ -721,8 +721,8 @@ function placeBarrel1()
 	if (barrelClone1 == null)
 	{
 		barrelClone1 = Instantiate(Barrel, barrelPos1, Quaternion.identity);
-	}
-	barrelClone1.SetActive(true);	
+		barrelClone1.SetActive(true);
+	}	
 }
 
 function placeBarrel2()
@@ -730,8 +730,8 @@ function placeBarrel2()
 	if (barrelClone2 == null)
 	{
 		barrelClone2 = Instantiate(Barrel, barrelPos2, Quaternion.identity);
-	}
-	barrelClone2.SetActive(true);	
+		barrelClone2.SetActive(true);
+	}	
 }
 
 function CreateMainMenu()
